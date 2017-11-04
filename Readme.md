@@ -1,4 +1,4 @@
-#We are utilizing and adapting Andrej Karpathy's ConvNetJS library to support an explorable interface that sits on top of LeNet trained on MNIST.
+We are utilizing and adapting Andrej Karpathy's ConvNetJS library to support an explorable interface that sits on top of LeNet trained on MNIST.
 
 Below is Karpathy's original readme.
 
