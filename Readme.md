@@ -1,4 +1,10 @@
+#We are utilizing and adapting Andrej Karpathy's ConvNetJS library to support an explorable interface that sits on top of LeNet trained on MNIST.
 
+Below is Karpathy's original readme.
+
+
+------------
+ 
 # ConvNetJS
 
 ConvNetJS implements Deep Learning models and learning algorithms as well as nice browser-based demos, all in Javascript.
