@@ -95,7 +95,7 @@ h1 {
 #select_container {
   width: 100%;
   position: relative;
-  min-height: 100px;
+  min-height: 120px;
 }
 .selection {
   float: left;
@@ -219,6 +219,27 @@ var sample_test_instance = function() {
   return {x:xs, label:labels[n]};
 }
 
+var sample_from_index = function(index) {
+  var p = img_data[20].data;
+  var k = index - 60000
+  var n = 20*3000+index;
+
+  var x = new convnetjs.Vol(28,28,1,0.0);
+  var W = 28*28;
+  for(var i=0;i<W;i++) {
+    var ix = ((W * k) + i) * 4;
+    x.w[i] = p[ix]/255.0;
+  }
+  var xs = [];
+  for(var i=0;i<4;i++) {
+    //this call of "augment"
+    xs.push(convnetjs.augment(x, 24));
+  }
+  // return multiple augmentations, and we will average the network over them
+  // to increase performance
+  return {x:xs, label:labels[index]};
+}
+
 var pop_lists = function() {
 
   starting_iterator = 20*3000
@@ -339,7 +360,7 @@ var start_fun = function() {
   if(loaded[0] && loaded[20]) { 
     console.log('starting!'); 
     //setInterval(load_and_step, 0); // lets go!
-    predict_specific();
+    predict_specific(-1);
     pop_lists();
   }
   else { setTimeout(start_fun, 200); } // keep checking
@@ -417,6 +438,13 @@ var draw_activations = function(elt, A, scale, grads) {
   }  
 }
 
+var visualize_input = function(net, elt, index) {
+  elt.innerHTML = "";
+  var L = net.layers[0];
+  var scale = 2;
+  elt.innerHTML = '<button onclick="runForward(' + index + ')">ReRun</button><br>'
+  draw_activations(elt, L.out_act, scale);
+}
 
 var visualize_activations = function(net, elt) {
 
@@ -531,7 +559,7 @@ var test_predict = function() {
   document.getElementById('testset_acc').innerHTML = '';
   // grab a random test image
   for(num=0;num<50;num++) {
-    var sample = sample_test_instance();
+    //var sample = sample_test_instance();
     var y = sample.label;  // ground truth label
 
     // forward prop it through the network
@@ -573,9 +601,18 @@ var test_predict = function() {
   }
 }
 
-var predict_specific = function() {
+var predict_specific = function(index) {
   //Parker: Sample would change to something specific 
-  var sample = sample_test_instance();
+  if(index < 0) {
+    var sample = sample_test_instance();
+  }
+  else{
+    var sample = sample_from_index(index);
+    console.log('gggoooooooo')
+    console.log(sample)
+  }
+    //var sample = sample_from_index(index);
+
   console.log(sample)
   var y = sample.label;
 
@@ -594,40 +631,43 @@ var predict_specific = function() {
   visualize_activations(net, vis_elt);
 }
 
-function classChange(control) {
-  data = []
-  switch(control.value) {
+var data_based_on_class = function(value) {
+  switch(value) {
     case "0":
-      data = zeros
+      return zeros
       break;
     case "1":
-      data = ones
+     return ones
       break;
     case "2":
-      data = twos
+      return twos
       break;
     case "3":
-      data = threes
+     return threes
       break;
     case "4":
-      data = fours
+      return fours
       break;
     case "5":
-      data = fives
+      return fives
       break;
     case "6":
-      data = sixes
+      return sixes
       break;
     case "7":
-      data = sevens
+      return sevens
       break;
     case "8":
-      data = eights
+      return eights
       break;
     case "9":
-      data = nines
+      return nines
       break;
   }
+}
+
+var classChange = function(control) {
+  data = data_based_on_class(control.value) 
 
   var select = control.parentElement.getElementsByTagName("select")[1]; 
   while (select.firstChild) {
@@ -640,10 +680,19 @@ function classChange(control) {
     el.text = "Sample #" + i
     select.appendChild(el);
   }
+
+  predict_specific(select.value);
+  visualize_input(net, control.parentElement.parentElement.getElementsByTagName("div")[0], select.value);
 }
 
+var sampleChange = function(control) {
+  predict_specific(control.value);
+  visualize_input(net, control.parentElement.parentElement.getElementsByTagName("div")[0], control.value);
+}
 
-var step_num = 0;
+var runForward = function(index) {
+  predict_specific(index);
+}
 
 </script>
 </head>
@@ -658,10 +707,11 @@ var step_num = 0;
             <option>Choose class</option>
           </select>
           <br>
-          <select id="selectExample1" class="example">
+          <select id="selectExample1" class="example" onchange="sampleChange(this)">
             <option>Choose example</option>
           </select>
         </form>
+        <div></div>
       </div>
       <div id="selector2" class="selection">
         <form id="classForm2">
@@ -669,10 +719,11 @@ var step_num = 0;
             <option>Choose class</option>
           </select>
           <br>
-          <select id="selectExample2" class="example">
+          <select id="selectExample2" class="example" onchange="sampleChange(this)">
             <option>Choose example</option>
           </select>
         </form>
+        <div></div>
       </div>
       <div id="selector3" class="selection">
         <form id="classForm3">
@@ -680,10 +731,11 @@ var step_num = 0;
             <option>Choose class</option>
           </select>
           <br>
-          <select id="selectExample3" class="example">
+          <select id="selectExample3" class="example" onchange="sampleChange(this)">
             <option>Choose example</option>
           </select>
         </form>
+        <div></div>
       </div>
       <div id="selector4" class="selection">
         <form id="classForm4">
@@ -691,10 +743,11 @@ var step_num = 0;
             <option>Choose class</option>
           </select>
           <br>
-          <select id="selectExample4" class="example">
+          <select id="selectExample4" class="example" onchange="sampleChange(this)">
             <option>Choose example</option>
           </select>
         </form>
+        <div></div>
       </div>
       <div id="selector5" class="selection">
         <form id="classForm5">
@@ -702,10 +755,11 @@ var step_num = 0;
             <option>Choose class</option>
           </select>
           <br>
-          <select id="selectExample5" class="example">
+          <select id="selectExample5" class="example" onchange="sampleChange(this)">
             <option>Choose example</option>
           </select>
         </form>
+        <div></div>
       </div>
     </div>
     <div id="visnet"></div>
